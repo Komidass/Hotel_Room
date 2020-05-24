@@ -37,6 +37,7 @@ int main(void)
     HWREG(GPIO_PORTF_DEN_R) = 0xE;
     HWREG(GPIO_PORTF_DIR_R) = 0xE;
     UART0Init();
+    UART0IntInit();
     uint8_t  Init_Error = EEPROM_Init();
     EEPROM_Mass_Erase();
 

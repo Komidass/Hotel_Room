@@ -54,13 +54,6 @@ extern void HotelSystemInput(void)
                 UARTPrintString("please enter number of room\n\r");
                 statebeginning = 0;
             }
-            else
-            {
-                readchar = UARTReadChar();
-                room_number = readchar;
-                state = State_Set_Room_Password;
-                statebeginning = 1;
-            }
             break;
 
         case State_Set_Room_Password:
@@ -73,24 +66,6 @@ extern void HotelSystemInput(void)
                 statebeginning = 0;
 
             }
-            else
-            {
-                readchar = UARTReadChar();
-                password |= ((0x00|readchar) << password_count*8);
-                password_count++;
-                HotelPrintPassword(readchar, password_count);
-                if (password_count == 4)
-                {
-                    Set_Password_Error = EEPROM_Set_Password(&password);
-                    Lock_Error = EEPROM_Lock();
-                    Lock_State = EEPROM_Get_Lock_State();
-                    if (Set_Password_Error == NO_ERROR) UARTPrintString("\n\rPassword succefully set\n\r");
-                    password_count = 0;
-                    state = State_Set_Room_Status;
-                    statebeginning = 1;
-                }
-
-            }
             break;
 
         case State_Set_Room_Status:
@@ -101,36 +76,6 @@ extern void HotelSystemInput(void)
                 UARTPrintChar(room_number);
                 UARTPrintString("\n\r1- Room Occupied  2-Room is being cleaned  3-Room is free\n\r");
                 statebeginning = 0;
-            }
-            else
-            {
-                readchar = UARTReadChar();
-                UARTPrintChar(readchar);
-                UARTPrintString("\n\r");
-                switch (readchar) {
-                    case Room_Occupied:
-                    if(Lock_State == EEPROM_LOCKED) UARTPrintString("Room is locked\n\r");
-                        break;
-                    case Room_Cleaning:
-                        Unlock_Error = EEPROM_Unlock(&password);
-                        if(Unlock_Error == NO_ERROR) UARTPrintString("Room is unlocked for cleaning\n\r");
-                        break;
-                    case Room_Free:
-                        EEPROM_Mass_Erase();
-                        UARTPrintString("Room ");
-                        UARTPrintChar(room_number);
-                        UARTPrintString(" is now free\n\r");
-                        password = 0;
-                        room_number = 0;
-                        SysCtlDelay(16000000*4/3);
-                        state = State_Enter_Room_Number;
-                        statebeginning = 1;
-                        break;
-                     default:
-                        statebeginning = 1;
-                        break;
-
-                }
             }
             break;
 
