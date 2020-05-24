@@ -4,6 +4,8 @@
  *  Created on: May 17, 2020
  *      Author: tho
  */
+#include"BIT_MATH.h"
+#include "types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include "inc/hw_memmap.h"
@@ -11,15 +13,25 @@
 #include "driverlib/sysctl.h"
 #include "tm4c123gh6pm_modified.h"
 #include "driverlib/cpu.h"
+#include "UART.h"
+#include "EEPROM.h"
 #include "HotelRoom.h"
+
 extern uint8_t DebugVar;
-
-
+extern uint8_t state;
+extern uint8_t statebeginning;
+extern uint32_t password;
+extern uint8_t room_number;
+extern uint8_t password_count;
+extern uint8_t Set_Password_Error;
+extern uint8_t readchar;
+extern uint8_t Lock_Error;
+extern uint8_t Lock_State;
+extern uint8_t Unlock_Error;
 
 
 void UART0_INT_Handler(void)
 {
-
     DebugVar = 1;
     //was there a receive interrupt ?
     if (HWREGBITW(UART0_MIS_R,4) == 1)
@@ -30,11 +42,59 @@ void UART0_INT_Handler(void)
         {
 
         }
+        readchar =  HWREG(UART0_DR_R);
+        switch (state) {
+                case State_Enter_Room_Number:
+                    room_number = readchar;
+                    state = State_Set_Room_Password;
+                    statebeginning = 1;
+                 break;
 
-        if (HWREG(UART0_DR_R) == 't')
-        {
+                case State_Set_Room_Password:
+                        password |= ((0x00|readchar) << password_count*8);
+                        password_count++;
+                        HotelPrintPassword(readchar, password_count);
+                        if (password_count == 4)
+                        {
+                            Set_Password_Error = EEPROM_Set_Password(&password);
+                            Lock_Error = EEPROM_Lock();
+                            Lock_State = EEPROM_Get_Lock_State();
+                            if (Set_Password_Error == NO_ERROR) UARTPrintString("\n\rPassword succefully set\n\r");
+                            password_count = 0;
+                            state = State_Set_Room_Status;
+                            statebeginning = 1;
+                        }
+                    break;
 
-        }
+                case State_Set_Room_Status:
+                        switch (readchar) {
+                            case Room_Occupied:
+                            if(Lock_State == EEPROM_LOCKED) UARTPrintString("Room is locked\n\r");
+                                break;
+                            case Room_Cleaning:
+                                Unlock_Error = EEPROM_Unlock(&password);
+                                if(Unlock_Error == NO_ERROR) UARTPrintString("Room is unlocked for cleaning\n\r");
+                                break;
+                            case Room_Free:
+                                EEPROM_Mass_Erase();
+                                UARTPrintString("Room ");
+                                UARTPrintChar(room_number);
+                                UARTPrintString(" is now free\n\r");
+                                password = 0;
+                                room_number = 0;
+                                SysCtlDelay(16000000*4/3);
+                                state = State_Enter_Room_Number;
+                                statebeginning = 1;
+                                break;
+                             default:
+                                statebeginning = 1;
+                                break;
+                        }
+                    break;
+
+                default:
+                    break;
+            }
 
     }
 }
