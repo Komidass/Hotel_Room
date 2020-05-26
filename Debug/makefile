@@ -8,8 +8,10 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./DIO.obj" \
 "./EEPROM.obj" \
 "./HotelRoom.obj" \
+"./KBD_program.obj" \
 "./UART.obj" \
 "./main.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
@@ -157,8 +159,8 @@ Hotel_Room_UART.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "EEPROM.obj" "HotelRoom.obj" "UART.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" 
-	-$(RM) "EEPROM.d" "HotelRoom.d" "UART.d" "main.d" "tm4c123gh6pm_startup_ccs.d" 
+	-$(RM) "DIO.obj" "EEPROM.obj" "HotelRoom.obj" "KBD_program.obj" "UART.obj" "main.obj" "tm4c123gh6pm_startup_ccs.obj" 
+	-$(RM) "DIO.d" "EEPROM.d" "HotelRoom.d" "KBD_program.d" "UART.d" "main.d" "tm4c123gh6pm_startup_ccs.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

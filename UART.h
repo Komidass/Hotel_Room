@@ -14,6 +14,7 @@ extern uint8_t UARTReadChar (void);
 extern void UARTPrintString (uint8_t* string);
 extern void UartClearTerminal (void);
 extern void UART0IntInit(void);
+extern void UartNewLine (void);
 
 
 

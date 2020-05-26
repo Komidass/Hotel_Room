@@ -23,11 +23,27 @@
 #define Room_Cleaning '2'
 #define Room_Free '3'
 
+/*
+ * Terminal commands
+ */
+
+#define Command_Room_Setup "setup"
+#define Command_Check_In   "check-in"
+#define Command_Cleaning   "cleaning"
+#define Command_Checkout   "check-out"
+
+#define MAX_OPERATION_LEN 20
+#define MAX_ROOM_SIZE 9
+
 extern void System(void);
 static void HotelEnterRoomNumber(uint8_t Room_Number);
 extern void HotelSystem(void);
-extern void HotelSystemInput(void);
+extern void HotelSystemPrintSwitch(void);
 extern void HotelPrintPassword(uint8_t password,uint8_t password_count);
+extern void HotelSystemInputSwitch(uint8_t readchar);
+extern void HotelTerminal (uint8_t* operation);
+static bool RoomSearch(uint8_t room_num);
+extern void HotelPrintDefault(void);
 
 
 

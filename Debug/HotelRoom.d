@@ -20,6 +20,9 @@ HotelRoom.obj: /home/tho/ti/TivaWare_C_Series-2.1.4.178/driverlib/cpu.h
 HotelRoom.obj: ../UART.h
 HotelRoom.obj: ../EEPROM.h
 HotelRoom.obj: ../HotelRoom.h
+HotelRoom.obj: /home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/string.h
+HotelRoom.obj: /home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/_ti_config.h
+HotelRoom.obj: /home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/linkage.h
 
 ../HotelRoom.c: 
 ../BIT_MATH.h: 
@@ -41,3 +44,6 @@ HotelRoom.obj: ../HotelRoom.h
 ../UART.h: 
 ../EEPROM.h: 
 ../HotelRoom.h: 
+/home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/string.h: 
+/home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/_ti_config.h: 
+/home/tho/ti/ccs930/ccs/tools/compiler/ti-cgt-arm_18.12.4.LTS/include/linkage.h: 

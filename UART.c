@@ -17,22 +17,23 @@
 #include "EEPROM.h"
 #include "HotelRoom.h"
 
-extern uint8_t DebugVar;
-extern uint8_t state;
-extern uint8_t statebeginning;
-extern uint32_t password;
-extern uint8_t room_number;
+extern volatile uint8_t state;
+extern volatile uint8_t statebeginning;
+extern volatile uint32_t password;
+extern volatile uint8_t room_number;
 extern uint8_t password_count;
 extern uint8_t Set_Password_Error;
 extern uint8_t readchar;
 extern uint8_t Lock_Error;
 extern uint8_t Lock_State;
 extern uint8_t Unlock_Error;
-
-
+//volatile uint8_t* uart_input_buffer;
+volatile uint8_t uart_input_buffer_count = 0;
+volatile uint8_t uart_input_buffer[MAX_OPERATION_LEN];
+uint8_t loop_count = 0;
 void UART0_INT_Handler(void)
 {
-    DebugVar = 1;
+
     //was there a receive interrupt ?
     if (HWREGBITW(UART0_MIS_R,4) == 1)
     {
@@ -42,60 +43,26 @@ void UART0_INT_Handler(void)
         {
 
         }
+
         readchar =  HWREG(UART0_DR_R);
-        switch (state) {
-                case State_Enter_Room_Number:
-                    room_number = readchar;
-                    state = State_Set_Room_Password;
-                    statebeginning = 1;
-                 break;
-
-                case State_Set_Room_Password:
-                        password |= ((0x00|readchar) << password_count*8);
-                        password_count++;
-                        HotelPrintPassword(readchar, password_count);
-                        if (password_count == 4)
-                        {
-                            Set_Password_Error = EEPROM_Set_Password(&password);
-                            Lock_Error = EEPROM_Lock();
-                            Lock_State = EEPROM_Get_Lock_State();
-                            if (Set_Password_Error == NO_ERROR) UARTPrintString("\n\rPassword succefully set\n\r");
-                            password_count = 0;
-                            state = State_Set_Room_Status;
-                            statebeginning = 1;
-                        }
-                    break;
-
-                case State_Set_Room_Status:
-                        switch (readchar) {
-                            case Room_Occupied:
-                            if(Lock_State == EEPROM_LOCKED) UARTPrintString("Room is locked\n\r");
-                                break;
-                            case Room_Cleaning:
-                                Unlock_Error = EEPROM_Unlock(&password);
-                                if(Unlock_Error == NO_ERROR) UARTPrintString("Room is unlocked for cleaning\n\r");
-                                break;
-                            case Room_Free:
-                                EEPROM_Mass_Erase();
-                                UARTPrintString("Room ");
-                                UARTPrintChar(room_number);
-                                UARTPrintString(" is now free\n\r");
-                                password = 0;
-                                room_number = 0;
-                                SysCtlDelay(16000000*4/3);
-                                state = State_Enter_Room_Number;
-                                statebeginning = 1;
-                                break;
-                             default:
-                                statebeginning = 1;
-                                break;
-                        }
-                    break;
-
-                default:
-                    break;
-            }
-
+        UARTPrintChar(readchar);
+        switch (readchar) {
+            case 0x0D:
+                UartNewLine();
+                uart_input_buffer[uart_input_buffer_count] = '\0';
+                HotelTerminal(uart_input_buffer);
+                uart_input_buffer_count = 0;
+                for (loop_count = 0; loop_count < MAX_ROOM_SIZE ; loop_count ++)
+                {
+                    uart_input_buffer[loop_count] = '\0';
+                }
+                break;
+            default:
+                uart_input_buffer_count ++;
+                uart_input_buffer[uart_input_buffer_count-1] = readchar;
+                break;
+        }
+        //HotelSystemInputSwitch(readchar);
     }
 }
 extern void UARTPrintChar (uint8_t character)
@@ -171,7 +138,10 @@ extern void UartClearTerminal (void)
     UARTPrintChar(12);
 }
 
-
+extern void UartNewLine (void)
+{
+    UARTPrintString("\n\r");
+}
 
 
 
