@@ -20,7 +20,6 @@
 
 
 extern uint8_t DebugVar;
-volatile uint8_t state = 0;
 uint8_t statebeginning = 1;
 uint32_t password = 0;
 uint8_t room_number = 0;
@@ -33,6 +32,7 @@ uint8_t Unlock_Error;
 uint8_t Room_Numbers[MAX_ROOM_SIZE] = {0};
 uint8_t RoomCheckedIn = 0;
 bool    occupied = 0;
+volatile bool    solenoid_locked = 1;
 //extern volatile uint8_t* uart_input_buffer;
 extern void HotelPrintDefault(void)
 {
@@ -71,13 +71,14 @@ extern void HotelTerminal (uint8_t* operation)
         token = strtok(argument, ",");
         while (token != NULL)
         {
-            Room_Numbers[loop_count] = token[0];
+            Room_Numbers[loop_count] = *token;
             token = strtok(NULL, ",");
             loop_count ++;
         }
         UartNewLine();
         UARTPrintString("setting up rooms was successful");
         UartNewLine();
+        solenoid_locked = 1;
     }
     else if (strcmp(command, Command_Check_In) == 0)
     {
@@ -87,6 +88,7 @@ extern void HotelTerminal (uint8_t* operation)
             UartNewLine();
             if (EEPROM_Get_Lock_State() == EEPROM_LOCKED) UARTPrintString("room is now locked");
             UartNewLine();
+            solenoid_locked = 1;
         }
         else
         {
@@ -108,6 +110,7 @@ extern void HotelTerminal (uint8_t* operation)
                 Lock_Error = EEPROM_Lock();
                 UartNewLine();
                 if (EEPROM_Get_Lock_State() == EEPROM_LOCKED) UARTPrintString("Password successfully set and room is now locked");
+                solenoid_locked = 1;
                 UartNewLine();
             }
             else
@@ -127,6 +130,7 @@ extern void HotelTerminal (uint8_t* operation)
             Unlock_Error = EEPROM_Unlock(&password);
             UartNewLine();
             if (EEPROM_Get_Lock_State() != EEPROM_LOCKED) UARTPrintString("Room is now unlocked for cleaning");
+            solenoid_locked = 0;
             UartNewLine();
         }
         else
@@ -143,6 +147,8 @@ extern void HotelTerminal (uint8_t* operation)
             EEPROM_Mass_Erase();
             UartNewLine();
             UARTPrintString("Room check out successful");
+            UartNewLine();
+            solenoid_locked = 1;
             password = 0;
             RoomCheckedIn = 0;
             occupied = 0;

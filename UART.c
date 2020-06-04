@@ -52,10 +52,12 @@ void UART0_INT_Handler(void)
                 uart_input_buffer[uart_input_buffer_count] = '\0';
                 HotelTerminal(uart_input_buffer);
                 uart_input_buffer_count = 0;
-                for (loop_count = 0; loop_count < MAX_ROOM_SIZE ; loop_count ++)
+                for (loop_count = 0; loop_count < MAX_OPERATION_LEN ; loop_count ++)
                 {
                     uart_input_buffer[loop_count] = '\0';
                 }
+                UARTPrintString(uart_input_buffer);
+
                 break;
             default:
                 uart_input_buffer_count ++;

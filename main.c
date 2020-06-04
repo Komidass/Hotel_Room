@@ -24,6 +24,7 @@ uint8_t pressed;
 uint8_t DebugVar = 0;
 //extern volatile uint8_t* uart_input_buffer;
 extern bool occupied;
+extern volatile bool    solenoid_locked;
 
 int main(void)
 {
@@ -38,8 +39,9 @@ int main(void)
      */
     HWREG(GPIO_PORTA_AFSEL_R) = PIN0|PIN1;
     HWREG(GPIO_PORTA_PCTL_R) = (1 << 0) | (1 << 4);
-    HWREG(GPIO_PORTA_DEN_R)= PIN0 | PIN1;
-
+    HWREG(GPIO_PORTA_DEN_R)= PIN0 | PIN1 | PIN7;
+    //A7 is the pin that controls the solenoid lock
+    HWREGBITW(GPIO_PORTA_DIR_R,7) = 1;
     HWREG(GPIO_PORTF_DEN_R) = 0xE;
     HWREG(GPIO_PORTF_DIR_R) = 0xE;
     HWREG(GPIO_PORTB_DEN_R) = 0xff;
@@ -75,6 +77,7 @@ int main(void)
                 else
                 {
                     UARTPrintString("Guest entered a correct password and room is now unlocked");
+                    solenoid_locked = 0;
                 }
                 UartNewLine();
             }
@@ -82,15 +85,24 @@ int main(void)
         }
         KBD_u8GetKeyPadState(keys);
         pressed = KBD_keys_map(keys);
-        if (EEPROM_Get_Lock_State() == EEPROM_LOCKED)
+        if (solenoid_locked)
         {
             HWREGBITW(GPIO_PORTF_DATA_R,1) = 1;
             HWREGBITW(GPIO_PORTF_DATA_R,3) = 0;
+            /*
+             * solenoid locked
+             */
+            HWREGBITW(GPIO_PORTF_DATA_R,7) = 1;
         }
         else
         {
             HWREGBITW(GPIO_PORTF_DATA_R,1) = 0;
             HWREGBITW(GPIO_PORTF_DATA_R,3) = 1;
+            /*
+             * solenoid unlocked
+             */
+            HWREGBITW(GPIO_PORTF_DATA_R,7) = 0;
+
         }
     }
 
